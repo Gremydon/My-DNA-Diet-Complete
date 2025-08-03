@@ -3,22 +3,30 @@
 
 let mochaData = null;
 let punkinData = null;
+let donData = null;
+let loraData = null;
 let currentPet = 'mocha';
 
 // Load all pet data
 async function loadAllPetData() {
   try {
-    const [mochaRes, punkinRes] = await Promise.all([
+    const [mochaRes, punkinRes, donRes, loraRes] = await Promise.all([
       fetch('mocha-data.json'),
-      fetch('punkin-data.json')
+      fetch('punkin-data.json'),
+      fetch('don-data.json'),
+      fetch('lora-data.json')
     ]);
     
     mochaData = await mochaRes.json();
     punkinData = await punkinRes.json();
+    donData = await donRes.json();
+    loraData = await loraRes.json();
     
     console.log('All pet data loaded successfully');
     console.log('Mocha data:', mochaData);
     console.log('Punkin data:', punkinData);
+    console.log('Don data:', donData);
+    console.log('Lora data:', loraData);
     
     // Initialize the view after data is loaded
     updateComparison();
@@ -31,7 +39,25 @@ async function loadAllPetData() {
 // Load and display pet data
 function loadPetData(petName) {
   currentPet = petName;
-  const data = petName === 'mocha' ? mochaData : punkinData;
+  let data;
+  
+  switch(petName) {
+    case 'mocha':
+      data = mochaData;
+      break;
+    case 'punkin':
+      data = punkinData;
+      break;
+    case 'don':
+      data = donData;
+      break;
+    case 'lora':
+      data = loraData;
+      break;
+    default:
+      console.error('Unknown pet:', petName);
+      return;
+  }
   
   if (!data) {
     console.error('No data available for pet:', petName);
@@ -73,12 +99,14 @@ function loadPetData(petName) {
 
 // Update comparison charts and lists
 function updateComparison() {
-  if (!mochaData || !punkinData) return;
+  if (!mochaData || !punkinData || !donData || !loraData) return;
 
   // Prepare data for charts
   const categories = [...new Set([
     ...mochaData.intolerances.map(i => i.category),
-    ...punkinData.intolerances.map(i => i.category)
+    ...punkinData.intolerances.map(i => i.category),
+    ...donData.intolerances.map(i => i.category),
+    ...loraData.intolerances.map(i => i.category)
   ])];
 
   // Category Chart
@@ -101,6 +129,24 @@ function updateComparison() {
         ),
         backgroundColor: 'rgba(255, 165, 0, 0.5)',
         borderColor: 'rgba(255, 165, 0, 1)',
+        borderWidth: 1
+      },
+      {
+        label: 'Don',
+        data: categories.map(cat => 
+          donData.intolerances.filter(i => i.category === cat).length
+        ),
+        backgroundColor: 'rgba(0, 128, 0, 0.5)',
+        borderColor: 'rgba(0, 128, 0, 1)',
+        borderWidth: 1
+      },
+      {
+        label: 'Lora',
+        data: categories.map(cat => 
+          loraData.intolerances.filter(i => i.category === cat).length
+        ),
+        backgroundColor: 'rgba(255, 0, 0, 0.5)',
+        borderColor: 'rgba(255, 0, 0, 1)',
         borderWidth: 1
       }
     ]
@@ -127,6 +173,24 @@ function updateComparison() {
         backgroundColor: 'rgba(255, 165, 0, 0.5)',
         borderColor: 'rgba(255, 165, 0, 1)',
         borderWidth: 1
+      },
+      {
+        label: 'Don',
+        data: [1, 2, 3].map(level => 
+          donData.intolerances.filter(i => i.level === level).length
+        ),
+        backgroundColor: 'rgba(0, 128, 0, 0.5)',
+        borderColor: 'rgba(0, 128, 0, 1)',
+        borderWidth: 1
+      },
+      {
+        label: 'Lora',
+        data: [1, 2, 3].map(level => 
+          loraData.intolerances.filter(i => i.level === level).length
+        ),
+        backgroundColor: 'rgba(255, 0, 0, 0.5)',
+        borderColor: 'rgba(255, 0, 0, 1)',
+        borderWidth: 1
       }
     ]
   };
@@ -151,6 +215,24 @@ function updateComparison() {
         ),
         backgroundColor: 'rgba(255, 165, 0, 0.5)',
         borderColor: 'rgba(255, 165, 0, 1)',
+        borderWidth: 1
+      },
+      {
+        label: 'Don',
+        data: categories.map(cat => 
+          donData.intolerances.filter(i => i.category === cat && i.level === 3).length
+        ),
+        backgroundColor: 'rgba(0, 128, 0, 0.5)',
+        borderColor: 'rgba(0, 128, 0, 1)',
+        borderWidth: 1
+      },
+      {
+        label: 'Lora',
+        data: categories.map(cat => 
+          loraData.intolerances.filter(i => i.category === cat && i.level === 3).length
+        ),
+        backgroundColor: 'rgba(255, 0, 0, 0.5)',
+        borderColor: 'rgba(255, 0, 0, 1)',
         borderWidth: 1
       }
     ]
@@ -200,6 +282,26 @@ function updateComparison() {
         }),
         backgroundColor: 'rgba(255, 165, 0, 0.2)',
         borderColor: 'rgba(255, 165, 0, 1)',
+        borderWidth: 1
+      },
+      {
+        label: 'Don',
+        data: categories.map(cat => {
+          const items = donData.intolerances.filter(i => i.category === cat);
+          return items.reduce((sum, item) => sum + item.level, 0) / items.length;
+        }),
+        backgroundColor: 'rgba(0, 128, 0, 0.2)',
+        borderColor: 'rgba(0, 128, 0, 1)',
+        borderWidth: 1
+      },
+      {
+        label: 'Lora',
+        data: categories.map(cat => {
+          const items = loraData.intolerances.filter(i => i.category === cat);
+          return items.reduce((sum, item) => sum + item.level, 0) / items.length;
+        }),
+        backgroundColor: 'rgba(255, 0, 0, 0.2)',
+        borderColor: 'rgba(255, 0, 0, 1)',
         borderWidth: 1
       }
     ]
@@ -372,6 +474,8 @@ function getCurrentPetData() {
   switch (currentPet) {
     case 'mocha': return mochaData;
     case 'punkin': return punkinData;
+    case 'don': return donData;
+    case 'lora': return loraData;
     default: return mochaData;
   }
 }
